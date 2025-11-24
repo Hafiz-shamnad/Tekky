@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/auth/auth_provider.dart';
+import 'providers/auth_provider.dart';
+import 'features/auth/splash/splash_page.dart';
 import 'app.dart';
 
 void main() {
-  runApp(
-    const ProviderScope(
-      child: AppStart(),
-    ),
-  );
+  runApp(const ProviderScope(child: AppStart()));
 }
 
 class AppStart extends ConsumerWidget {
@@ -16,20 +13,15 @@ class AppStart extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authInit = ref.watch(authInitProvider);
+    final init = ref.watch(authInitProvider);
 
-    return authInit.when(
+    return init.when(
       loading: () => const MaterialApp(
+        home: SplashPage(),
         debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
       ),
-      error: (err, _) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(child: Text("Error: $err")),
-        ),
+      error: (e, _) => MaterialApp(
+        home: Scaffold(body: Center(child: Text("Error: $e"))),
       ),
       data: (_) => const TekkyApp(),
     );

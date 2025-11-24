@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/api/profile_api.dart';
+import '../services/api/profile_api.dart';
 
 final usernameCheckProvider =
     StateNotifierProvider<UsernameCheckNotifier, AsyncValue<bool?>>(

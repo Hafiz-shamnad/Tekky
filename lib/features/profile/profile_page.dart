@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'profile_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/storage/secure_storage.dart';
@@ -29,10 +29,7 @@ class ProfilePage extends ConsumerWidget {
         ),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.more_vert_rounded,
-              color: Color(0xFF64748B),
-            ),
+            icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF64748B)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -52,7 +49,11 @@ class ProfilePage extends ConsumerWidget {
                 value: 'edit',
                 child: Row(
                   children: [
-                    const Icon(Icons.edit_outlined, size: 20, color: Color(0xFF64748B)),
+                    const Icon(
+                      Icons.edit_outlined,
+                      size: 20,
+                      color: Color(0xFF64748B),
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'Edit Profile',
@@ -68,7 +69,11 @@ class ProfilePage extends ConsumerWidget {
                 value: 'settings',
                 child: Row(
                   children: [
-                    const Icon(Icons.settings_outlined, size: 20, color: Color(0xFF64748B)),
+                    const Icon(
+                      Icons.settings_outlined,
+                      size: 20,
+                      color: Color(0xFF64748B),
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'Settings',
@@ -85,7 +90,11 @@ class ProfilePage extends ConsumerWidget {
                 value: 'logout',
                 child: Row(
                   children: [
-                    const Icon(Icons.logout_rounded, size: 20, color: Color(0xFFEF4444)),
+                    const Icon(
+                      Icons.logout_rounded,
+                      size: 20,
+                      color: Color(0xFFEF4444),
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'Logout',
@@ -104,10 +113,7 @@ class ProfilePage extends ConsumerWidget {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: const Color(0xFFE2E8F0),
-          ),
+          child: Container(height: 1, color: const Color(0xFFE2E8F0)),
         ),
       ),
       body: profile.when(
@@ -115,7 +121,7 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              
+
               // Profile Header Section
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -169,7 +175,8 @@ class ProfilePage extends ConsumerWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  user["name"] != null && user["name"].isNotEmpty
+                                  user["name"] != null &&
+                                          user["name"].isNotEmpty
                                       ? user["name"][0].toUpperCase()
                                       : '?',
                                   style: GoogleFonts.inter(
@@ -295,6 +302,81 @@ class ProfilePage extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
+              // XP & Level Section
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.stars_rounded,
+                          color: Color(0xFFFACC15),
+                          size: 26,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Level ${user['level'] ?? 1}",
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Spacer(),
+                        Text(
+                          "${user['xp'] ?? 0} XP",
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF6366F1),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // XP Progress Bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: LinearProgressIndicator(
+                        value: ((user['xp'] ?? 0) % 100) / 100,
+                        backgroundColor: const Color(0xFFE2E8F0),
+                        valueColor: AlwaysStoppedAnimation(Color(0xFF6366F1)),
+                        minHeight: 10,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+                    Text(
+                      "${100 - ((user['xp'] ?? 0) % 100)} XP to next level",
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // Stats Section
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -385,9 +467,7 @@ class ProfilePage extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF6366F1),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF6366F1)),
         ),
         error: (err, st) => Center(
           child: Column(
@@ -468,11 +548,7 @@ class ProfilePage extends ConsumerWidget {
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: color,
-          ),
+          child: Icon(icon, size: 24, color: color),
         ),
         const SizedBox(height: 8),
         Text(
@@ -521,11 +597,7 @@ class ProfilePage extends ConsumerWidget {
                   color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: const Color(0xFF6366F1),
-                ),
+                child: Icon(icon, size: 20, color: const Color(0xFF6366F1)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -554,9 +626,7 @@ class ProfilePage extends ConsumerWidget {
     return showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(

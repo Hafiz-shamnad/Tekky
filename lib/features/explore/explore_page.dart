@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../features/auth/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/api/ideas_api.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
