@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ------------------------- USER & SOCIAL MODELS ------------------------- */
+
+model User {
+  id            String          @id @default(uuid())
+  username      String?         @unique
+  name          String
+  email         String          @unique
+  password      String
+  avatarUrl     String?
+  bio           String?
+
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  following     Follow[]        @relation("following")
+  followers     Follow[]        @relation("followers")
+  refreshTokens RefreshToken[]
+
+  /* New relations */
+  ideas           Idea[]
+  interests       Interest[]
+  collaborations  Collaborator[]
+
+  createdAt     DateTime        @default(now())
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  follower    User     @relation("following", fields: [followerId], references: [id])
+  followerId  String
+
+  following   User     @relation("followers", fields: [followingId], references: [id])
+  followingId String
+
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+
+  comments  Comment[]
+  likes     Like[]
+
+  createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+
+  createdAt DateTime @default(now())
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model RefreshToken {
+  id           String   @id @default(uuid())
+  tokenHash    String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  revoked      Boolean  @default(false)
+  replacedById String?
+
+  @@index([userId])
+}
+
+/* ------------------------- IDEA MODELS ------------------------- */
+
+model Idea {
+  id            String         @id @default(uuid())
+  ownerId       String
+  title         String
+  description   String
+  techStacks    String[]
+  lookingFor    String[]
+  createdAt     DateTime       @default(now())
+
+  owner         User           @relation(fields: [ownerId], references: [id])
+  interests     Interest[]
+  collaborators Collaborator[]
+}
+
+model Interest {
+  id        String   @id @default(uuid())
+  ideaId    String
+  userId    String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Collaborator {
+  id        String   @id @default(uuid())
+  ideaId    String
+  userId    String
+  role      String
+  joinedAt  DateTime @default(now())
+
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}

@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../services/storage/secure_storage.dart';
+import '../auth_provider.dart';
 import 'package:go_router/go_router.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
+    checkAuth();
+  }
 
-    // Fake loading animation
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.go('/feed');
-      }
-    });
+  Future<void> checkAuth() async {
+    final accessToken = await SecureStorage.getAccessToken();
+
+    if (accessToken != null) {
+      ref.read(authStateProvider.notifier).state = true;
+      context.go('/feed'); // logged in
+    } else {
+      ref.read(authStateProvider.notifier).state = false;
+      context.go('/login'); // not logged in
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Text(
-          "Tekky Platform",
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-        ),
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
