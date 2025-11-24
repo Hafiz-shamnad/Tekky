@@ -1,7 +1,7 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { createAccessToken, createRefreshToken, hashToken } from "../utils/tokens.js";
+import { createAccessToken, createRefreshToken, hashToken } from "../utils/tokens.utils.js";
 
 /**
  * POST /api/auth/login
@@ -30,18 +30,64 @@ export const login = async (req, res) => {
     return res.status(400).json({ message: "Invalid credentials" });
   }
 
+  // ------------------------------
+  // ⭐ DAILY LOGIN XP LOGIC
+  // ------------------------------
+  const now = new Date();
+  let xpGained = 0;
+  let alreadyClaimed = false;
+
+  if (!user.lastDailyXP || user.lastDailyXP.toISOString().split("T")[0] !== now.toISOString().split("T")[0]) {
+    // Today login reward
+    xpGained = 5;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        xp: { increment: 5 },
+        lastDailyXP: now,
+      },
+    });
+
+  } else {
+    alreadyClaimed = true;
+  }
+
+  // ------------------------------
+  // ⭐ Level update after XP change
+  // ------------------------------
+  const updated = await prisma.user.findUnique({ where: { id: user.id } });
+
+  const xpTotal = updated.xp;
+  const level = Math.floor(xpTotal / 100) + 1;
+
+  if (level !== updated.level) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { level },
+    });
+  }
+
+  // ------------------------------
+
   const accessToken = createAccessToken(user);
   const { rawToken } = await createRefreshToken(user.id, 30);
 
   return res.json({
     accessToken,
     refreshToken: rawToken,
+
+    dailyXP: xpGained,
+    alreadyClaimed,
+    newXP: xpTotal,
+    newLevel: level,
+
     user: {
       id: user.id,
       name: user.name,
       username: user.username,
       email: user.email,
-      avatarUrl: user.avatarUrl
+      avatarUrl: user.avatarUrl,
     },
   });
 };
@@ -54,25 +100,34 @@ export const login = async (req, res) => {
  */
 export const refresh = async (req, res) => {
   const { refreshToken } = req.body;
-  if (!refreshToken) return res.status(400).json({ message: "No refresh token provided" });
+  if (!refreshToken)
+    return res.status(400).json({ message: "No refresh token provided" });
 
   const tokenHash = hashToken(refreshToken);
 
-  // find the token in DB
   const existing = await prisma.refreshToken.findFirst({
     where: { tokenHash },
   });
 
   if (!existing) return res.status(401).json({ message: "Invalid refresh token" });
-  if (existing.revoked) return res.status(401).json({ message: "Refresh token revoked" });
-  if (existing.expiresAt < new Date()) return res.status(401).json({ message: "Refresh token expired" });
+  if (existing.revoked)
+    return res.status(401).json({ message: "Refresh token revoked" });
+  if (existing.expiresAt < new Date())
+    return res.status(401).json({ message: "Refresh token expired" });
 
   // get user
-  const user = await prisma.user.findUnique({ where: { id: existing.userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: existing.userId },
+  });
+
   if (!user) return res.status(401).json({ message: "Invalid refresh token" });
 
-  // rotate: create a new refresh token and mark existing as revoked + link replacedById
-  const { rawToken: newRawToken, dbToken } = await createRefreshToken(user.id, 30);
+  // rotate token
+  const { rawToken: newRawToken, dbToken } = await createRefreshToken(
+    user.id,
+    30
+  );
+
   await prisma.refreshToken.update({
     where: { id: existing.id },
     data: { revoked: true, replacedById: dbToken.id },
@@ -83,6 +138,17 @@ export const refresh = async (req, res) => {
   return res.json({
     accessToken,
     refreshToken: newRawToken,
+
+    // 🔥 FIX: include user info so Flutter gets `user.id`
+    user: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      xp: user.xp,
+      level: user.level,
+    },
   });
 };
 

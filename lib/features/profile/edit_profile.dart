@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth/username_provider.dart';
+import '../../providers/username_provider.dart';
 import 'profile_provider.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {

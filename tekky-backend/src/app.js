@@ -15,11 +15,13 @@ import postRoutes from "./routes/post.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import ideasRoutes from "./routes/ideas.routes.js";
+import xpRoutes from "./routes/xp.routes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/profile", profileRoutes)
 app.use("/api/ideas", ideasRoutes);
+app.use("/api/xp", xpRoutes);
 
 export default app;

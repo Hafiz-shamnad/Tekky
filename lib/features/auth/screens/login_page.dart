@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../services/api/auth_api.dart';
+import '../../community/xp/xp_provider.dart';
+import '../../community/xp/xp_reward_popup.dart';
+import '../../../services/storage/secure_storage.dart';
+
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
-
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
@@ -35,8 +38,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _passCtrl.text.trim(),
       );
 
+      // Update providers NOW so Feed gets userId immediately
+      ref.read(currentUserProvider.notifier).state = user["id"];
+      ref.read(authTokenProvider.notifier).state =
+          await SecureStorage.getAccessToken();
       ref.read(authStateProvider.notifier).state = true;
+
+      // Allow provider rebuild
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Now safe to navigate
       context.go('/feed');
+
+      // XP claim
+      final xpResult = await ref.read(xpClaimProvider.future);
+      if (xpResult["xpGained"] != null && xpResult["xpGained"] > 0) {
+        showXPRewardPopup(context, xpResult["xpGained"]);
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -318,9 +336,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF2F2),
-                            border: Border.all(
-                              color: const Color(0xFFFECACA),
-                            ),
+                            border: Border.all(color: const Color(0xFFFECACA)),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -444,7 +460,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       OutlinedButton.icon(
                         onPressed: () {},
                         icon: const Icon(
@@ -507,7 +523,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ),
-            )
+            ),
           ),
         ),
       ),

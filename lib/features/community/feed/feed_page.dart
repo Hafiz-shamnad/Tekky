@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tekky/data/models/post_model.dart';
-import 'feed_providers.dart';
+import '../../../providers/feed_providers.dart';
 import '../../../services/api/post_api.dart';
-import '../../auth/auth_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 class FeedPage extends ConsumerWidget {
   const FeedPage({super.key});

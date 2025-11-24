@@ -1,8 +1,8 @@
 import prisma from "../config/db.js";
+import { nextLevelXP } from "../utils/xp.utils.js";
 
 /**
- * GET /api/profile/:userId
- * Public profile with counts
+ * GET /api/profile/:userId (Public Profile)
  */
 export const getProfile = async (req, res) => {
   const { userId } = req.params;
@@ -16,7 +16,16 @@ export const getProfile = async (req, res) => {
       email: true,
       avatarUrl: true,
       bio: true,
+      xp: true,
+      level: true,
       createdAt: true,
+      badges: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+        }
+      }
     },
   });
 
@@ -28,6 +37,7 @@ export const getProfile = async (req, res) => {
 
   return res.json({
     ...user,
+    nextXP: nextLevelXP(user.level),
     counts: { posts: postsCount, followers: followersCount, following: followingCount },
   });
 };
@@ -47,7 +57,16 @@ export const getMyProfile = async (req, res) => {
       email: true,
       avatarUrl: true,
       bio: true,
+      xp: true,
+      level: true,
       createdAt: true,
+      badges: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+        }
+      }
     },
   });
 
@@ -59,19 +78,18 @@ export const getMyProfile = async (req, res) => {
 
   return res.json({
     ...user,
+    nextXP: nextLevelXP(user.level),
     counts: { posts: postsCount, followers: followersCount, following: followingCount },
   });
 };
 
 /**
- * PUT /api/profile
- * Body: { username?, name?, avatarUrl?, bio? }
+ * PUT /api/profile (update profile)
  */
 export const updateProfile = async (req, res) => {
   const userId = req.user.userId;
   const { username, name, avatarUrl, bio } = req.body;
 
-  // Optional: validate username uniqueness
   if (username) {
     const existing = await prisma.user.findUnique({ where: { username } });
     if (existing && existing.id !== userId) {
@@ -89,6 +107,9 @@ export const updateProfile = async (req, res) => {
       email: true,
       avatarUrl: true,
       bio: true,
+      xp: true,
+      level: true,
+      badges: { select: { id: true, name: true, icon: true } },
       createdAt: true,
     },
   });
